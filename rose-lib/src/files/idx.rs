@@ -66,7 +66,7 @@ impl RoseFile for VfsIndex {
             let mut vfs = VfsMetadata::new();
             vfs.filename = PathBuf::from(reader.read_string_u16()?);
 
-            let offset = reader.read_i32()?;
+            let offset = reader.read_u32()?;
             let next_filesystem = reader.seek(SeekFrom::Current(0))?; // seek(0) returns current position
             let _ = reader.seek(SeekFrom::Start(offset as u64))?;
 
@@ -77,8 +77,8 @@ impl RoseFile for VfsIndex {
             for _ in 0..file_count {
                 let mut vfs_file = VfsFileMetadata::new();
                 vfs_file.filepath = PathBuf::from_rose_path(&reader.read_string_u16()?);
-                vfs_file.offset = reader.read_i32()?;
-                vfs_file.size = reader.read_i32()?;
+                vfs_file.offset = reader.read_u32()?;
+                vfs_file.size = reader.read_u32()?;
                 vfs_file.block_size = reader.read_i32()?;
                 vfs_file.is_deleted = reader.read_bool()?;
                 vfs_file.is_compressed = reader.read_bool()?;
@@ -130,13 +130,13 @@ impl RoseFile for VfsIndex {
 
             writer.write_i32(vfs.files.len() as i32)?;
             writer.write_i32(deleted_count)?;
-            writer.write_i32(vfs.files[0].offset)?;
+            writer.write_u32(vfs.files[0].offset)?;
 
             for file in &vfs.files {
                 let fname = &file.filepath.to_str().unwrap_or("");
                 writer.write_string_u16(fname)?;
-                writer.write_i32(file.offset)?;
-                writer.write_i32(file.size)?;
+                writer.write_u32(file.offset)?;
+                writer.write_u32(file.size)?;
                 writer.write_i32(file.block_size)?;
                 writer.write_bool(file.is_deleted)?;
                 writer.write_bool(file.is_compressed)?;
@@ -171,8 +171,8 @@ impl VfsMetadata {
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct VfsFileMetadata {
     pub filepath: PathBuf,
-    pub offset: i32,
-    pub size: i32,
+    pub offset: u32,
+    pub size: u32,
     pub block_size: i32,
     pub is_deleted: bool,
     pub is_compressed: bool,
