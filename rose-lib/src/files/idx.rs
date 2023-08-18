@@ -80,9 +80,6 @@ impl RoseFile for VfsIndex {
                 vfs_file.offset = reader.read_u32()?;
                 vfs_file.size = reader.read_u32()?;
                 vfs_file.block_size = reader.read_i32()?;
-                vfs_file.is_deleted = reader.read_bool()?;
-                vfs_file.is_compressed = reader.read_bool()?;
-                vfs_file.is_encrypted = reader.read_bool()?;
                 vfs_file.version = reader.read_i32()?;
                 vfs_file.checksum = reader.read_i32()?;
 
@@ -121,15 +118,8 @@ impl RoseFile for VfsIndex {
             writer.write_i32(file_offset as i32)?;
             writer.seek(SeekFrom::Start(file_offset))?;
 
-            let mut deleted_count: i32 = 0;
-            for file in &vfs.files {
-                if file.is_deleted {
-                    deleted_count += 1;
-                }
-            }
-
             writer.write_i32(vfs.files.len() as i32)?;
-            writer.write_i32(deleted_count)?;
+            writer.write_i32(0)?;
             writer.write_u32(vfs.files[0].offset)?;
 
             for file in &vfs.files {
@@ -138,9 +128,6 @@ impl RoseFile for VfsIndex {
                 writer.write_u32(file.offset)?;
                 writer.write_u32(file.size)?;
                 writer.write_i32(file.block_size)?;
-                writer.write_bool(file.is_deleted)?;
-                writer.write_bool(file.is_compressed)?;
-                writer.write_bool(file.is_encrypted)?;
                 writer.write_i32(file.version)?;
                 writer.write_i32(file.checksum)?;
             }
@@ -174,9 +161,6 @@ pub struct VfsFileMetadata {
     pub offset: u32,
     pub size: u32,
     pub block_size: i32,
-    pub is_deleted: bool,
-    pub is_compressed: bool,
-    pub is_encrypted: bool,
     pub version: i32,
     pub checksum: i32,
 }
